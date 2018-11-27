@@ -1,0 +1,22 @@
+function P_PERFTIME_VS(f, ax, data, info)
+
+fprintf('\n Begin: Plotting Performance over Time. \n')
+
+hold off;
+set(0, 'currentfigure', f);
+set(f, 'currentaxes', ax);
+hold on;
+
+pad = 15;
+cor = [nan(1,pad), data.trial_by.correct, nan(1,pad)];
+
+for i = pad+1 : numel(data.trial_by.correct)
+    
+    cortim(i-pad) = nansum(cor(i-pad:i+pad)) / ...
+        sum(isnan(cor(i-pad:i+pad))) * 100;
+    
+end
+
+
+
+end

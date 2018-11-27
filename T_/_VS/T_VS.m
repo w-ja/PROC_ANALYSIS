@@ -1,0 +1,97 @@
+function T_VS(evt, info, params, varargin)
+
+priming = true;
+
+varStrInd = find(cellfun(@ischar,varargin));
+for iv = 1:length(varStrInd)
+    switch varargin{varStrInd(iv)}
+        case {'-p','prime'}
+            priming = varargin{varStrInd(iv)+1};
+    end
+end
+
+vect = strcmp(evt.vec_task, 'prime');
+n_blk = max(evt.block_bytask(vect));
+
+if params.training || params.bhv_only
+    bhv_only = true;
+else
+    bhv_only = false;
+end
+
+blk_proc = true;
+i_blk = 0;
+
+while blk_proc
+
+    if params.blk_merge
+
+    else
+        i_blk = i_blk + 1;
+        
+        if i_blk > max(evt.block_bytask(strcmp(evt.vec_task,'prime')))
+            blk_proc = false;
+            continue
+        end
+
+        cur_blk = vect & (i_blk == evt.block_bytask)';
+        
+        blk.evt.code = evt.code(cur_blk);
+        blk.evt.time = evt.time(cur_blk);
+        
+        blk.idx_beg = find( cur_blk, 1, 'first');
+        blk.idx_end = find( cur_blk, 1, 'last');
+        
+        blk.t(1) = evt.time(blk.idx_beg) - 1000;
+        blk.t(2) = evt.time(blk.idx_end) + 1000;
+        
+        data = H_READ_TDT(info, params, '-t', blk.t, '-b', bhv_only);
+
+    end
+    
+    data = T_CODING_VS(data);
+    data = T_BLKING_VS(data);
+    
+    figs_bhv = figure( 'units', 'normalized', 'outerposition', [0 0 1 1]);
+
+    vs_rthist = subplot(2,3,1);
+    P_RTHIST_VS(figs_bhv, vs_rthist, data, info);
+
+    vs_perfbar = subplot(2,3,5);
+    P_PERFBAR_VS(figs_bhv, vs_perfbar, data, info);
+
+    vs_outbar = subplot(2,3,6);
+    P_OUTBAR_VS(figs_bhv, vs_outbar, data, info);
+    
+    vs_perftime = subplot(2,3,3);
+    P_PERFTIME_VS(figs_bhv, vs_perftime, data, info);
+    
+    vs_locpol = subplot(2,3,4,polaraxes);
+    P_LOCPOL_VS(figs_bhv, vs_locpol, data, info);
+    
+    vs_rtcdf = subplot(2,3,2);
+    P_RTCDF_VS(figs_bhv, vs_rtcdf, data, info);
+    
+%     figs_prime = figure( 'units', 'normalized', 'outerposition', [0 0 1 1]);
+% 
+%     vs_perf_priming = subplot(1,2,2);
+%     P_PERF_PRIMING_VS(figs_prime, vs_perf_priming, data, info);
+% 
+%     vs_rt_priming = subplot(1,2,1);
+%     P_RT_PRIMING_VS(figs_prime, vs_rt_priming, data, info);
+    
+    if params.blk_merge
+        %save([params.dir_out num2str(info.date) '_' info.monkey '_vs.mat'], ...
+        %    'data', 'info', 'params', '-v7.3');
+        saveas(figs_bhv, [params.dir_out 'figs\' num2str(info.date) '_' info.monkey '_vs_bhv_blk' num2str(i_blk) '.png'])
+        %saveas(figs_prime, [params.dir_out 'figs\' num2str(info.date) '_' info.monkey '_vs_prime_blk' num2str(i_blk) '.fig'])
+    else
+        %save([params.dir_out num2str(info.date) '_' info.monkey '_vs_blk' num2str(i_blk) '.mat'], ...
+        %    'data', 'info', 'params', '-v7.3');
+        saveas(figs_bhv, [params.dir_out 'figs\' num2str(info.date) '_' info.monkey '_vs_bhv_blk' num2str(i_blk) '.png'])
+        %saveas(figs_prime, [params.dir_out 'figs\' num2str(info.date) '_' info.monkey '_vs_prime_blk' num2str(i_blk) '.fig'])
+    end
+    
+    clear data figs
+end
+end

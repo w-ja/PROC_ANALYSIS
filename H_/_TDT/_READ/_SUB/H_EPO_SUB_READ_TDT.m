@@ -1,0 +1,13 @@
+function [data_out_code, data_out_onset, data_out_offset] = ...
+    H_EPO_SUB_READ_TDT(direc, store, t_lims)
+
+t = TDTbin2mat(direc, 'T1', t_lims(1)/1000, ...
+                    'T2', t_lims(2)/1000, ...
+                    'TYPE',{'epocs'}, ...
+                    'STORE', store);
+                
+data_out_code = eval(['t.epocs.' store '.data']);
+data_out_onset = eval(['t.epocs.' store '.onset']);
+data_out_offset = eval(['t.epocs.' store '.offset']);
+
+end
